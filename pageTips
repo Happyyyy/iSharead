@@ -1,0 +1,88 @@
+/**
+ * Created by Zq's PC on 2016/3/26.
+ */
+(function($){
+    $.fn.pageTips = function(ini){
+        var ini=ini||{};
+        //初始化默认值
+        var defaults = {
+            //提示类型 默认:error 成功success 警告waring
+            type: ini.type || "error",
+            //是否自动关闭
+            autoClose: ini.autoClose === false ? false : true,
+            //自动关闭间隔
+            autoCloseTime: ini.autoCloseTime || 3000,
+            //默认提示文字
+            text:ini.text,
+            //图标
+            icon:ini.icon,
+            errorIcon:"icon-error",
+            successIcon:"icon-ok",
+            waringIcon:"icon-info"
+        }
+        var options = $.extend(defaults, options);
+        this.each(function(){
+            var $this=$(this);
+            var $tips=$this.children(".page-tips");
+            var tipsIcon;
+            if (options.icon){
+                tipsIcon = options.icon;
+            } else if (!options.icon && options.type == "error"){
+                tipsIcon = options.errorIcon;
+            }else if (!options.icon && options.type == "success"){
+                tipsIcon =options.successIcon;
+            }else if(!options.icon && options.type == "waring"){
+                tipsIcon =options.waringIcon;
+            }else{
+                tipsIcon =options.waringIcon;
+            };
+            var id="id_"+(new Date()).valueOf(),timer=id;
+
+            var html='<div class="page-tips '+ options.type + '" id="'+id+'"><p><a href="#" title="" class="fr close"><i class="iconfont icon-close"></i></a><i class="iconfont '+ tipsIcon +'"></i> '+ options.text +'</p></div>';
+
+            if (options.text){
+                if ($tips.length!==0){
+                    //如果已经有page-tips 获取该节点及计时器
+                    var oldObj=$tips.attr("id"),oldTimer=oldObj;
+                    //清除已有计时器
+                    clearTimeout(oldTimer);
+                    //隐藏已有节点
+                    hideTips("#"+oldObj);
+                    showTips();
+                }else{
+                    showTips();
+                };
+                //如果开启自动关闭
+                if (options.autoClose){
+                    timer = setTimeout(function(){
+                        hideTips("#"+id);
+                    },options.autoCloseTime);
+                }
+            }
+            //显示
+            function showTips(){
+                $this.prepend(html).children("#"+id).css({"z-index":getMaxZIndex()}).animate({opacity:1,"margin-top":0},200).find(".close").click(function(){
+                    hideTips("#"+id);
+                });
+            }
+            //隐藏
+            function hideTips(elem){
+                clearTimeout(timer);
+                $this.children(elem).animate({opacity:0,"margin-top":"-1.125rem"},100,function(){
+                    $(this).remove();
+                });
+            }
+            //获得元素中最高z-index
+            function getMaxZIndex() {
+                var maxZIndex = 0;
+                for (var i = 0; i < $this.children().length; i++) {
+                    var curZ = parseInt($this.children(":eq("+i+"):not('.page-tips')").css("z-index"));
+                    if (curZ > maxZIndex) {
+                        maxZIndex = curZ;
+                    }
+                }
+                return maxZIndex + 1;
+            }
+        })
+    }
+})(jQuery);
